@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title th:text="${order.orderNumber + ' — The TrendVelle'}">Order</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="topbar">
+  <a href="/home" class="logo-wrap" style="text-decoration:none">
+    <div class="logo-circle"><img th:src="@{/images/logo.png}" alt="The TrendVelle" onerror="this.parentNode.style.background='#F5AFAF'"></div>
+    <div class="brand-text">The TrendVelle<span>Fashion · Style</span></div>
+  </a>
+  <nav class="topnav"><a href="/home">Home</a><a href="/shop">Shop</a><a href="/orders" class="active">My Orders</a><a href="/chat"><i class="ti ti-message-circle"></i> Chat</a></nav>
+  <a href="/cart" class="cart-btn" style="margin-left:8px"><i class="ti ti-shopping-cart" style="font-size:16px"></i><span class="cart-dot" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}"></span></a>
+  <div style="margin-left:10px"><a href="/auth/logout" class="btn btn-secondary btn-sm">Logout</a></div>
+</nav>
+<div class="main-content"><div class="container">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+    <a href="/orders" class="btn btn-secondary btn-sm"><i class="ti ti-arrow-left"></i></a>
+    <div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--tv-dark)" th:text="${order.orderNumber}">Order</div>
+      <div style="font-size:12px;color:var(--tv-muted)" th:text="${#temporals.format(order.createdAt,'MMMM d, yyyy · h:mm a')}">Date</div>
+    </div>
+    <span th:class="'status status-' + ${order.status.name().toLowerCase()}" style="margin-left:auto"
+          th:text="${#strings.replace(order.status.name(),'_',' ')}">Status</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 350px;gap:22px;align-items:start">
+    <div>
+      <!-- Tracking -->
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--tv-dark);margin-bottom:20px"><i class="ti ti-map-pin"></i> Order Tracking</h3>
+        <div class="tracking-steps">
+          <div class="tracking-step">
+            <div class="step-indicator">
+              <div class="step-dot done"><i class="ti ti-check" style="font-size:11px"></i></div>
+              <div class="step-line done"></div>
+            </div>
+            <div class="step-content"><div class="step-title">Order Placed</div><div class="step-time" th:text="${#temporals.format(order.createdAt,'MMM d, yyyy · h:mm a')}">Date</div></div>
+          </div>
+          <div class="tracking-step">
+            <div class="step-indicator">
+              <div th:class="${order.status.name()!='PENDING'?'step-dot done':'step-dot'}">
+                <i class="ti ti-check" style="font-size:11px" th:if="${order.status.name()!='PENDING'}"></i>
+              </div>
+              <div th:class="${order.status.name()!='PENDING'?'step-line done':'step-line'}"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-title" th:style="${order.status.name()=='PENDING'?'color:var(--tv-muted)':''}">Payment Verified</div>
+              <div class="step-time" th:text="${order.status.name()!='PENDING'?'Verified':'Awaiting verification'}"></div>
+            </div>
+          </div>
+          <div class="tracking-step">
+            <div class="step-indicator">
+              <div th:class="${order.status.name()=='OUT_FOR_DELIVERY' or order.status.name()=='DELIVERED'?'step-dot done':(order.status.name()=='PROCESSING'?'step-dot active':'step-dot')}">
+                <i class="ti ti-check" style="font-size:11px" th:if="${order.status.name()=='OUT_FOR_DELIVERY' or order.status.name()=='DELIVERED'}"></i>
+              </div>
+              <div th:class="${order.status.name()=='OUT_FOR_DELIVERY' or order.status.name()=='DELIVERED'?'step-line done':'step-line'}"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-title" th:style="${order.status.name()=='PENDING' or order.status.name()=='PROCESSING'?'color:var(--tv-muted)':''}">Processing Order</div>
+              <div class="step-time">Preparing your items</div>
+            </div>
+          </div>
+          <div class="tracking-step">
+            <div class="step-indicator">
+              <div th:class="${order.status.name()=='DELIVERED'?'step-dot done':(order.status.name()=='OUT_FOR_DELIVERY'?'step-dot active':'step-dot')}">
+                <i class="ti ti-check" style="font-size:11px" th:if="${order.status.name()=='DELIVERED'}"></i>
+              </div>
+              <div th:class="${order.status.name()=='DELIVERED'?'step-line done':'step-line'}"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-title" th:style="${order.status.name()!='OUT_FOR_DELIVERY' and order.status.name()!='DELIVERED'?'color:var(--tv-muted)':''}"
+                   th:text="${order.deliveryMethod.name()=='MAXIM'?'Out for Delivery':'Ready for Pickup'}">Delivery</div>
+              <div class="step-time" th:text="${order.deliveryMethod.name()=='MAXIM'?'Maxim rider on the way':'Visit our branch'}"></div>
+            </div>
+          </div>
+          <div class="tracking-step">
+            <div class="step-indicator">
+              <div th:class="${order.status.name()=='DELIVERED'?'step-dot done':'step-dot'}">
+                <i class="ti ti-check" style="font-size:11px" th:if="${order.status.name()=='DELIVERED'}"></i>
+              </div>
+            </div>
+            <div class="step-content">
+              <div class="step-title" th:style="${order.status.name()!='DELIVERED'?'color:var(--tv-muted)':'color:var(--tv-success)'}">
+                <span th:text="${order.deliveryMethod.name()=='MAXIM'?'Delivered ✓':'Picked Up ✓'}">Done</span>
+              </div>
+              <div class="step-time" th:text="${order.status.name()=='DELIVERED'?'Order complete!':'Pending'}"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery info -->
+      <div class="card" style="margin-bottom:16px" th:if="${order.deliveryMethod.name()=='MAXIM'}">
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--tv-dark);margin-bottom:14px"><i class="ti ti-truck"></i> Delivery Info</h3>
+        <div style="display:grid;gap:10px">
+          <div style="display:flex;gap:16px"><span style="color:var(--tv-muted);font-size:12px;min-width:120px">Address</span><span style="font-size:13px;font-weight:500" th:text="${order.deliveryAddress}">Addr</span></div>
+          <div style="display:flex;gap:16px"><span style="color:var(--tv-muted);font-size:12px;min-width:120px">Contact</span><span style="font-size:13px;font-weight:500" th:text="${order.contactNumber}">Phone</span></div>
+          <div style="display:flex;gap:16px"><span style="color:var(--tv-muted);font-size:12px;min-width:120px">Payment</span><span style="font-size:13px;font-weight:500" th:text="${order.paymentMethod}">GCash</span></div>
+          <div style="display:flex;gap:16px"><span style="color:var(--tv-muted);font-size:12px;min-width:120px">Reference #</span><span style="font-size:13px;font-weight:700;color:var(--tv-dark)" th:text="${order.referenceNumber}">Ref</span></div>
+        </div>
+      </div>
+
+      <!-- Rate prompt -->
+      <div th:if="${order.status.name()=='DELIVERED'}" style="background:var(--tv-s1);border:1px solid var(--tv-accent);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;gap:14px">
+        <span style="font-size:26px">⭐</span>
+        <div style="flex:1"><div style="font-weight:600;font-size:14px;color:var(--tv-dark)">How was your experience?</div><div style="font-size:12px;color:var(--tv-muted)">Share your feedback with The TrendVelle</div></div>
+        <a href="/reviews/store" class="btn btn-outline btn-sm">Rate Store</a>
+      </div>
+    </div>
+
+    <!-- Right: Items & summary -->
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <h3 style="font-size:12px;font-weight:600;color:var(--tv-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px">Items Ordered</h3>
+        <div th:each="item : ${order.items}" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:44px;height:44px;border-radius:var(--rs);background:var(--tv-s1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid var(--tv-border)" th:text="${item.product.icon}">👗</div>
+          <div style="flex:1"><div style="font-weight:600;font-size:12px" th:text="${item.product.name}">Item</div><div style="font-size:11px;color:var(--tv-muted)" th:text="'Size: ' + ${item.selectedSize} + ' · Qty: ' + ${item.quantity}"></div></div>
+          <div style="font-weight:600;font-size:12px" th:text="'₱' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">₱0</div>
+        </div>
+        <div style="height:1px;background:var(--tv-border);margin:12px 0"></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;color:var(--tv-muted)"><span>Delivery</span><span th:text="${order.deliveryMethod.name()=='MAXIM'?'₱80.00':'Free (Pickup)'}"></span></div>
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;color:var(--tv-dark)"><span>Total</span><span th:text="'₱' + ${#numbers.formatDecimal(order.totalAmount,1,'COMMA',2,'POINT')}">₱0</span></div>
+      </div>
+      <a href="/chat" class="btn btn-secondary btn-full"><i class="ti ti-message-circle"></i> Chat with Support</a>
+    </div>
+  </div>
+</div></div>
+</body>
+</html>

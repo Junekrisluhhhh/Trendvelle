@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>My Cart — The TrendVelle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <style>
+    .product-overlay {position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);z-index:2000;}
+    .product-overlay.show {display:flex;}
+    .overlay-card {width:min(92vw,760px);max-height:88vh;overflow:auto;background:#fff;border-radius:24px;box-shadow:0 28px 80px rgba(0,0,0,0.15);position:relative;padding:24px;}
+    .overlay-close {position:absolute;top:18px;right:18px;border:none;background:transparent;font-size:28px;color:#333;cursor:pointer;}
+    .overlay-grid {display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;}
+    .overlay-image {width:100%;min-height:340px;background:#f8f5f3;border-radius:20px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #eee;}
+    .overlay-image img {width:100%;height:100%;object-fit:cover;}
+    .overlay-info h2 {margin:0 0 12px;font-size:28px;}
+    .overlay-info .meta {font-size:13px;color:#6b7280;margin-bottom:16px;}
+    .overlay-info .price {font-size:28px;font-weight:700;color:#7a2e30;margin-bottom:18px;}
+    .overlay-info p {line-height:1.8;color:#5b5757;margin-bottom:18px;}
+    .overlay-info .overlay-actions {display:flex;gap:12px;flex-wrap:wrap;}
+    .overlay-info .overlay-actions a {white-space:nowrap;}
+    input[type=number].qty-input::-webkit-outer-spin-button,
+    input[type=number].qty-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+      display: none;
+    }
+    input[type=number].qty-input {
+      -moz-appearance: textfield;
+      appearance: textfield;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="/home" class="logo-wrap" style="text-decoration:none">
+    <div class="logo-circle"><img th:src="@{/images/logo.png}" alt="The TrendVelle" onerror="this.parentNode.style.background='#F5AFAF'"></div>
+    <div class="brand-text">The TrendVelle<span>Fashion · Style</span></div>
+  </a>
+  <nav class="topnav">
+    <a href="/home">Home</a><a href="/shop">Shop</a><a href="/orders">My Orders</a><a href="/chat"><i class="ti ti-message-circle"></i> Chat</a>
+  </nav>
+  <a href="/cart" class="cart-btn" style="margin-left:8px;background:var(--tv-s2);border-color:var(--tv-dark)">
+    <i class="ti ti-shopping-cart" style="font-size:16px"></i>
+    <span class="cart-dot" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}"></span>
+  </a>
+  <div style="margin-left:10px"><a href="/auth/logout" class="btn btn-secondary btn-sm">Logout</a></div>
+</nav>
+<div class="main-content"><div class="container">
+  <div class="page-title">My Cart</div>
+  <div class="page-subtitle" th:text="${cartCount} + ' item(s) in your cart'">0 items</div>
+
+  <div class="empty-state" th:if="${#lists.isEmpty(cartItems)}">
+    <div class="empty-icon">🛒</div>
+    <h3>Your cart is empty</h3>
+    <p>Add some products to get started</p>
+    <a href="/shop" class="btn btn-primary" style="margin-top:16px">Browse Shop</a>
+  </div>
+
+  <div th:if="${not #lists.isEmpty(cartItems)}" style="display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start">
+    <div class="card">
+      <div th:each="item : ${cartItems}"
+           class="cart-item"
+           role="button"
+           style="cursor:pointer"
+           th:data-product-name="${item.product.name}"
+           th:data-product-image="${item.product.hasImage()} ? ${item.product.imagePath} : ''"
+           th:data-product-icon="${item.product.hasImage()} ? '' : ${item.product.icon != null ? item.product.icon : '👗'}"
+           th:data-product-price="${#numbers.formatDecimal(item.product.price,1,'COMMA',2,'POINT')}"
+           th:data-product-description="${item.product.description}"
+           th:data-product-category="${item.product.category != null ? item.product.category.name : 'Product'}"
+           th:data-product-link="@{/product/{id}(id=${item.product.id})}">
+        <div class="cart-item-img">
+          <img th:if="${item.product.hasImage()}" th:src="${item.product.imagePath}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:var(--rs)">
+          <span th:unless="${item.product.hasImage()}" th:text="${item.product.icon != null ? item.product.icon : '👗'}" style="font-size:28px"></span>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px" th:text="${item.product.name}">Product</div>
+          <div style="font-size:12px;color:var(--tv-muted);margin-top:2px"
+               th:text="'Size: ' + ${item.selectedSize} + ' · ₱' + ${#numbers.formatDecimal(item.product.price,1,'COMMA',2,'POINT')} + ' each'"></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+            <form th:action="@{/cart/update/{id}(id=${item.id})}" method="post" style="display:flex;align-items:center;gap:8px" class="cart-item-actions">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+              <button type="submit" name="quantity" th:value="${item.quantity - 1}" class="qty-btn">−</button>
+              <input type="number" name="quantity" id="qty-${item.id}" th:value="${item.quantity}" th:max="${item.product.stockQuantity}" readonly class="form-control qty-input" style="width:60px;text-align:center">
+              <button type="submit" name="quantity" th:value="${item.quantity + 1}" class="qty-btn">+</button>
+            </form>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:700;font-size:16px;color:var(--tv-dark)"
+               th:text="'₱' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">₱0</div>
+          <form th:action="@{/cart/remove/{id}(id=${item.id})}" method="post" style="margin-top:8px" class="cart-item-actions">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--tv-danger)"><i class="ti ti-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="position:sticky;top:80px">
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--tv-dark);margin-bottom:16px">Order Summary</h3>
+      <div th:each="item : ${cartItems}" style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px;color:var(--tv-muted)">
+        <span th:text="${item.product.name + ' x' + item.quantity}">Item</span>
+        <span th:text="'₱' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">₱0</span>
+      </div>
+      <div style="height:1px;background:var(--tv-border);margin:12px 0"></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--tv-muted)">
+        <span>Subtotal</span><span th:text="'₱' + ${#numbers.formatDecimal(cartTotal,1,'COMMA',2,'POINT')}">₱0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--tv-muted)"><span>Delivery</span><span>Calculated at checkout</span></div>
+      <div style="height:1px;background:var(--tv-border);margin:12px 0"></div>
+      <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:var(--tv-dark);margin-bottom:20px">
+        <span>Total</span>
+        <span th:text="'₱' + ${#numbers.formatDecimal(cartTotal,1,'COMMA',2,'POINT')}">₱0</span>
+      </div>
+      <a href="/orders/checkout" class="btn btn-primary btn-full btn-lg">Proceed to Checkout <i class="ti ti-arrow-right"></i></a>
+      <a href="/shop" class="btn btn-secondary btn-full" style="margin-top:10px"><i class="ti ti-arrow-left"></i> Continue Shopping</a>
+    </div>
+  </div>
+</div></div>
+
+<div id="productOverlay" class="product-overlay" onclick="closeProductOverlay(event)">
+  <div class="overlay-card" onclick="event.stopPropagation()">
+    <button type="button" class="overlay-close" onclick="closeProductOverlay()">×</button>
+    <div class="overlay-grid">
+      <div class="overlay-image" id="overlayImage"></div>
+      <div class="overlay-info">
+        <div class="meta" id="overlayCategory"></div>
+        <h2 id="overlayName"></h2>
+        <div class="price" id="overlayPrice"></div>
+        <p id="overlayDescription"></p>
+        <div class="overlay-actions">
+          <a id="overlayViewLink" href="#" class="btn btn-primary">View Product</a>
+          <button type="button" class="btn btn-secondary" onclick="closeProductOverlay()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function closeProductOverlay(event){
+  if(event && event.target !== event.currentTarget) return;
+  document.getElementById('productOverlay').classList.remove('show');
+}
+function openProductOverlay(item){
+  const overlay=document.getElementById('productOverlay');
+  const name=item.dataset.productName || 'Product';
+  const category=item.dataset.productCategory || '';
+  const price=item.dataset.productPrice ? '₱' + item.dataset.productPrice : '';
+  const description=item.dataset.productDescription || 'No description available.';
+  const image=item.dataset.productImage;
+  const icon=item.dataset.productIcon;
+  const link=item.dataset.productLink || '#';
+  document.getElementById('overlayName').textContent=name;
+  document.getElementById('overlayCategory').textContent=category;
+  document.getElementById('overlayPrice').textContent=price;
+  document.getElementById('overlayDescription').textContent=description;
+  document.getElementById('overlayViewLink').setAttribute('href', link);
+  const imageWrapper=document.getElementById('overlayImage');
+  imageWrapper.innerHTML = image ? '<img src="'+image+'" alt="'+name+'">' : '<span style="font-size:80px">'+(icon||'👗')+'</span>';
+  overlay.classList.add('show');
+}
+document.querySelectorAll('.cart-item').forEach(item => {
+  item.addEventListener('click', function(event){
+    const clickedAction = event.target.closest('.cart-item-actions, button, input, a');
+    if (clickedAction) return;
+    openProductOverlay(this);
+  });
+});
+</script>
+</body>
+</html>

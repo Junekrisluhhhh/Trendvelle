@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title th:text="${product.name + ' — The TrendVelle'}">Product</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <style>
+    input[type=number].qty-input::-webkit-outer-spin-button,
+    input[type=number].qty-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+      display: none;
+    }
+    input[type=number].qty-input {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="/home" class="logo-wrap" style="text-decoration:none">
+    <div class="logo-circle"><img th:src="@{/images/logo.png}" alt="The TrendVelle" onerror="this.parentNode.style.background='#F5AFAF'"></div>
+    <div class="brand-text">The TrendVelle<span>Fashion · Style</span></div>
+  </a>
+  <nav class="topnav">
+    <a href="/home">Home</a><a href="/shop" class="active">Shop</a>
+    <a href="/orders">My Orders</a><a href="/chat"><i class="ti ti-message-circle"></i> Chat</a>
+  </nav>
+  <a href="/cart" class="cart-btn" style="margin-left:8px">
+    <i class="ti ti-shopping-cart" style="font-size:16px"></i>
+    <span class="cart-dot" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}"></span>
+  </a>
+  <div style="margin-left:10px;display:flex;gap:8px;align-items:center">
+    <a th:if="${#authentication != null}" href="/auth/logout" class="btn btn-secondary btn-sm">Logout</a>
+    <a th:if="${#authentication == null}" href="/auth/login" class="btn btn-primary btn-sm">Login</a>
+  </div>
+</nav>
+<div class="main-content"><div class="container">
+
+  <div th:if="${success}" class="alert alert-success mb-16"><i class="ti ti-check"></i> <span th:text="${success}"></span></div>
+
+  <div style="display:grid;grid-template-columns:340px 1fr;gap:44px;align-items:start">
+    <!-- Image -->
+    <div>
+      <div style="height:340px;background:var(--tv-s1);border-radius:var(--r);overflow:hidden;border:1px solid var(--tv-border);display:flex;align-items:center;justify-content:center">
+      <img th:if="${product.hasImage()}" th:src="${product.imagePath}" alt="" style="width:100%;height:100%;object-fit:cover">
+      <span th:unless="${product.hasImage()}" th:text="${product.icon != null ? product.icon : '👗'}" style="font-size:110px"></span>
+    </div>
+    </div>
+
+    <!-- Info -->
+    <div>
+      <div style="font-size:11px;color:var(--tv-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px" th:text="${product.category?.name}">Category</div>
+      <h1 style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:var(--tv-dark);margin-bottom:10px" th:text="${product.name}">Name</h1>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px" th:if="${product.reviewCount > 0}">
+        <span class="stars" style="font-size:16px">
+          <span th:each="i : ${#numbers.sequence(1,5)}" th:text="${i <= product.averageRating ? '★' : '☆'}"></span>
+        </span>
+        <span style="font-size:12px;color:var(--tv-muted)" th:text="${#numbers.formatDecimal(product.averageRating,1,'POINT',1,'POINT')} + ' (' + ${product.reviewCount} + ' reviews)'"></span>
+      </div>
+
+      <div style="font-size:32px;font-weight:700;color:var(--tv-dark);margin-bottom:20px"
+           th:text="'₱' + ${#numbers.formatDecimal(product.price,1,'COMMA',2,'POINT')}">₱0</div>
+
+      <p style="font-size:14px;color:var(--tv-muted);line-height:1.75;margin-bottom:24px" th:text="${product.description}">Description</p>
+
+      <!-- Add to cart -->
+      <div th:if="${#authentication != null}">
+      <form th:action="@{/cart/add}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input type="hidden" name="productId" th:value="${product.id}">
+
+        <div class="form-group" th:if="${sizes != null and sizes.length > 0}">
+          <label class="form-label">Select Size</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <label th:each="size, stat : ${sizes}" style="cursor:pointer">
+              <input type="radio" name="size" th:value="${size}" th:checked="${stat.first}" style="display:none" class="size-radio">
+              <span class="chip size-chip" th:text="${#strings.trim(size)}">M</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Quantity</label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
+            <input type="number" name="quantity" id="qty" value="1" min="1" th:max="${product.stockQuantity}" readonly style="width:60px;text-align:center" class="form-control qty-input">
+            <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:22px">
+          <button type="submit" class="btn btn-primary btn-lg" style="flex:1">
+            <i class="ti ti-shopping-cart-plus"></i> Add to Cart
+          </button>
+          <a href="/cart" class="btn btn-outline btn-lg"><i class="ti ti-shopping-cart"></i></a>
+        </div>
+      </form>
+
+      <!-- Write review -->
+      <div style="margin-top:20px;border-top:1px solid var(--tv-border);padding-top:20px">
+        <details>
+          <summary style="font-size:13px;font-weight:600;color:var(--tv-mid);cursor:pointer;list-style:none">
+            <i class="ti ti-star"></i> Write a Review
+          </summary>
+          <form th:action="@{/reviews/product/{id}(id=${product.id})}" method="post" style="margin-top:16px">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <div class="form-group">
+              <label class="form-label">Rating</label>
+              <div class="star-rating" id="starRating">
+                <span class="star" th:each="i : ${#numbers.sequence(1,5)}" th:data-value="${i}" onclick="setRating(this)">★</span>
+              </div>
+              <input type="hidden" name="rating" id="ratingInput" value="5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Your Comment</label>
+              <textarea name="comment" class="form-control" placeholder="Share your experience..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-secondary btn-sm">Submit Review</button>
+          </form>
+        </details>
+      </div>
+      </div>
+      <div th:if="${#authentication == null}">
+        <a href="/auth/login" class="btn btn-primary btn-full btn-lg" style="margin-top:10px">Login to Purchase</a>
+      </div>
+
+      <div style="margin-top:14px;font-size:12px;color:var(--tv-muted)">
+        <i class="ti ti-package"></i> <span th:text="${product.stockQuantity} + ' items in stock'"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reviews -->
+  <div style="margin-top:52px">
+    <div class="section-header"><h2>Customer Reviews</h2></div>
+    <div class="empty-state" th:if="${#lists.isEmpty(reviews)}" style="padding:32px">
+      <p style="color:var(--tv-muted)">No reviews yet. Be the first to review this product!</p>
+    </div>
+    <div style="display:grid;gap:14px" th:if="${not #lists.isEmpty(reviews)}">
+      <div class="card card-sm" th:each="review : ${reviews}">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="avatar" th:text="${#strings.substring(review.user.fullName,0,2).toUpperCase()}">MG</div>
+            <div>
+              <div style="font-weight:600;font-size:13px" th:text="${review.user.fullName}">Name</div>
+              <div style="font-size:11px;color:var(--tv-muted)" th:text="${#temporals.format(review.createdAt,'MMM d, yyyy')}">Date</div>
+            </div>
+          </div>
+          <div class="stars"><span th:each="i : ${#numbers.sequence(1,5)}" th:text="${i <= review.rating ? '★' : '☆'}"></span></div>
+        </div>
+        <p style="font-size:13px;color:var(--tv-muted)" th:text="${review.comment}">Comment</p>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<script>
+function changeQty(d){const e=document.getElementById('qty');const v=parseInt(e.value)+d;if(v>=1)e.value=v;}
+function setRating(el){
+  const val=parseInt(el.dataset.value);
+  document.getElementById('ratingInput').value=val;
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('filled',i<val));
+}
+document.querySelectorAll('.size-radio').forEach(r=>{
+  r.addEventListener('change',()=>{
+    document.querySelectorAll('.size-chip').forEach(c=>c.classList.remove('active'));
+    r.nextElementSibling.classList.add('active');
+  });
+});
+const firstRadio=document.querySelector('.size-radio');
+if(firstRadio) firstRadio.nextElementSibling.classList.add('active');
+document.querySelectorAll('.star').forEach((star,idx)=>{
+  star.addEventListener('mouseover',()=>document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('filled',i<=idx)));
+});
+document.getElementById('starRating')?.addEventListener('mouseleave',()=>{
+  const r=parseInt(document.getElementById('ratingInput').value);
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('filled',i<r));
+});
+document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('filled',i<5));
+</script>
+</body>
+</html>

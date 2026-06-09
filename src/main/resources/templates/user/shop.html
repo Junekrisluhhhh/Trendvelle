@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Shop — The TrendVelle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="topbar">
+  <a href="/home" class="logo-wrap" style="text-decoration:none">
+    <div class="logo-circle"><img th:src="@{/images/logo.png}" alt="The TrendVelle" onerror="this.parentNode.style.background='#F5AFAF'"></div>
+    <div class="brand-text">The TrendVelle<span>Fashion · Style</span></div>
+  </a>
+  <nav class="topnav">
+    <a href="/home">Home</a><a href="/shop" class="active">Shop</a>
+    <a href="/orders">My Orders</a><a href="/chat"><i class="ti ti-message-circle"></i> Chat</a>
+    <a href="/reviews/store">Rate Store</a>
+  </nav>
+  <a href="/cart" class="cart-btn" style="margin-left:8px">
+    <i class="ti ti-shopping-cart" style="font-size:16px"></i>
+    <span class="cart-dot" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}"></span>
+  </a>
+  <div style="margin-left:10px;display:flex;gap:8px;align-items:center">
+    <a th:if="${#authentication != null}" href="/auth/logout" class="btn btn-secondary btn-sm">Logout</a>
+    <a th:if="${#authentication == null}" href="/auth/login" class="btn btn-primary btn-sm">Login</a>
+  </div>
+</nav>
+<div class="main-content"><div class="container">
+  <div class="page-title">Shop</div>
+  <div class="page-subtitle">Browse the full TrendVelle collection</div>
+
+  <form method="get" action="/shop" style="margin-bottom:18px">
+    <div class="search-bar" style="max-width:420px">
+      <i class="ti ti-search"></i>
+      <input type="text" name="q" class="form-control" placeholder="Search products..." th:value="${searchQuery}">
+    </div>
+  </form>
+
+  <div class="chips">
+    <a href="/shop" class="chip" th:classappend="${selectedCategory==null and searchQuery==null?' active':''}">All</a>
+    <a th:each="cat : ${categories}" th:href="@{/shop(category=${cat.id})}"
+       class="chip" th:classappend="${selectedCategory==cat.id?' active':''}"
+       th:text="${cat.icon + ' ' + cat.name}">Cat</a>
+  </div>
+
+  <div style="font-size:12px;color:var(--tv-muted);margin-bottom:16px"
+       th:text="${#lists.size(products)} + ' products found'">0 products</div>
+
+  <div class="product-grid" th:if="${not #lists.isEmpty(products)}">
+    <a th:each="product : ${products}" th:href="@{/product/{id}(id=${product.id})}" class="product-card">
+      <div class="product-card-img">
+          <img th:if="${product.hasImage()}" th:src="${product.imagePath}" alt="" style="width:100%;height:100%;object-fit:cover">
+          <span th:unless="${product.hasImage()}" th:text="${product.icon != null ? product.icon : '👗'}" style="font-size:64px"></span>
+        </div>
+      <div class="product-card-body">
+        <div class="product-category" th:text="${product.category?.name}">Category</div>
+        <div class="product-name" th:text="${product.name}">Name</div>
+        <div class="flex-between" style="margin-top:8px">
+          <div class="product-price" th:text="'₱' + ${#numbers.formatDecimal(product.price,1,'COMMA',2,'POINT')}">₱0</div>
+          <div class="stars" style="font-size:11px" th:if="${product.reviewCount > 0}">
+            <span th:each="i : ${#numbers.sequence(1,5)}" th:text="${i <= product.averageRating ? '★' : '☆'}"></span>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--tv-muted);margin-top:5px" th:text="${product.stockQuantity} + ' in stock'"></div>
+      </div>
+    </a>
+  </div>
+
+  <div class="empty-state" th:if="${#lists.isEmpty(products)}">
+    <div class="empty-icon">🔍</div>
+    <h3>No products found</h3>
+    <p>Try a different search or browse all categories</p>
+    <a href="/shop" class="btn btn-primary" style="margin-top:16px">Browse All</a>
+  </div>
+</div></div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Dashboard — Admin — The TrendVelle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<!-- Admin Topbar -->
+<div class="page-wrapper">
+  <!-- Sidebar -->
+  <div class="admin-sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-logo-wrap">
+        <div class="sidebar-logo"><img th:src="@{/images/logo.png}" alt="" onerror="this.parentNode.style.background='#F5AFAF'"></div>
+        <div class="sidebar-brand">The TrendVelle<span>Admin Panel</span></div>
+      </div>
+    </div>
+    <a href="/admin/dashboard" class="sidebar-link active"><i class="ti ti-dashboard"></i> Dashboard</a>
+    <a href="/admin/products"  class="sidebar-link"><i class="ti ti-shirt"></i> Products</a>
+    <a href="/admin/orders"    class="sidebar-link"><i class="ti ti-package"></i> Orders</a>
+    <a href="/admin/deliveries" class="sidebar-link"><i class="ti ti-truck"></i> Deliveries</a>
+    <a href="/admin/accounts"  class="sidebar-link"><i class="ti ti-users"></i> Accounts</a>
+    <a href="/admin/chat"      class="sidebar-link">
+      <i class="ti ti-message-circle"></i> Chat
+      <span class="sidebar-badge" th:if="${unreadChats > 0}" th:text="${unreadChats}"></span>
+    </a>
+    <a href="/admin/ratings"   class="sidebar-link"><i class="ti ti-star"></i> Ratings</a>
+    <a href="/auth/logout" class="sidebar-link"><i class="ti ti-logout"></i> Logout</a>
+  </div>
+
+  <!-- Main body -->
+  <div class="admin-body">
+    <div class="section-header">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-subtitle">Welcome back, Admin</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-icon rose"><i class="ti ti-currency-peso"></i></div>
+        <div class="stat-label">Total Sales</div>
+        <div class="stat-value" th:text="'₱' + ${#numbers.formatDecimal(totalSales,1,'COMMA',2,'POINT')}">₱0</div>
+        <div class="stat-change">Delivered orders</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon rose"><i class="ti ti-package"></i></div>
+        <div class="stat-label">Orders Today</div>
+        <div class="stat-value" th:text="${todayOrders}">0</div>
+        <div class="stat-change">Total: <span th:text="${totalOrders}">0</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon mauve"><i class="ti ti-shirt"></i></div>
+        <div class="stat-label">Active Products</div>
+        <div class="stat-value" th:text="${totalProducts}">0</div>
+        <div class="stat-change">In catalogue</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon mauve"><i class="ti ti-users"></i></div>
+        <div class="stat-label">Customers</div>
+        <div class="stat-value" th:text="${totalUsers}">0</div>
+        <div class="stat-change">Registered users</div>
+      </div>
+    </div>
+
+    <!-- Bar chart -->
+    <div class="card" style="margin-bottom:22px">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--tv-dark);margin-bottom:14px">Sales This Week</div>
+      <div class="bar-chart">
+        <div class="bar" style="height:42%"></div><div class="bar" style="height:65%"></div>
+        <div class="bar" style="height:50%"></div><div class="bar" style="height:80%"></div>
+        <div class="bar" style="height:60%"></div><div class="bar" style="height:92%"></div>
+        <div class="bar" style="height:75%"></div>
+      </div>
+      <div style="display:flex;gap:5px;padding:4px 2px 0">
+        <div th:each="d : ${ {'Mon','Tue','Wed','Thu','Fri','Sat','Sun'} }" style="flex:1;text-align:center;font-size:10px;color:var(--tv-muted)" th:text="${d}">Day</div>
+      </div>
+    </div>
+
+    <!-- Recent orders -->
+    <div class="card" style="margin-bottom:22px">
+      <div class="section-header" style="margin-bottom:14px">
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--tv-dark)">Recent Orders</h3>
+        <a href="/admin/orders" class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Order</th><th>Customer</th><th>Method</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(recentOrders)}">
+              <td colspan="7" style="text-align:center;color:var(--tv-muted);padding:28px">No orders yet</td>
+            </tr>
+            <tr th:each="order : ${recentOrders}">
+              <td style="font-weight:600" th:text="${order.orderNumber}">Order#</td>
+              <td th:text="${order.user.fullName}">User</td>
+              <td th:text="${order.deliveryMethod.name()=='MAXIM'?'🛵 Maxim':'🏪 Pickup'}">Method</td>
+              <td style="font-weight:600;color:var(--tv-dark)" th:text="'₱' + ${#numbers.formatDecimal(order.totalAmount,1,'COMMA',2,'POINT')}">₱0</td>
+              <td><span th:class="'status status-' + ${order.status.name().toLowerCase()}" th:text="${#strings.replace(order.status.name(),'_',' ')}">Status</span></td>
+              <td style="font-size:12px;color:var(--tv-muted)" th:text="${#temporals.format(order.createdAt,'MMM d, yyyy')}">Date</td>
+              <td><a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn btn-secondary btn-sm">View</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Products preview -->
+    <div class="card">
+      <div class="section-header" style="margin-bottom:14px">
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--tv-dark)">Product Catalogue</h3>
+        <a href="/admin/products" class="btn btn-secondary btn-sm">Manage</a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+        <div th:each="p : ${allProducts}" style="background:var(--tv-s1);border-radius:var(--rs);padding:12px;text-align:center;border:1px solid var(--tv-border)">
+          <div style="font-size:32px;margin-bottom:6px">
+            <img th:if="${p.hasImage()}" th:src="${p.imagePath}" alt="" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
+            <span th:unless="${p.hasImage()}" th:text="${p.icon != null ? p.icon : '👗'}"></span>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--tv-text)" th:text="${p.name}">Name</div>
+          <div style="font-size:11px;color:var(--tv-muted)" th:text="${p.category?.name}">Cat</div>
+          <div style="font-size:13px;font-weight:700;color:var(--tv-dark);margin-top:5px" th:text="'₱' + ${#numbers.formatDecimal(p.price,1,'COMMA',2,'POINT')}">₱0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

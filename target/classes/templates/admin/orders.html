@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Orders — Admin — The TrendVelle</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div class="page-wrapper">
+<div class="admin-sidebar"><div class="sidebar-head"><div class="sidebar-logo-wrap"><div class="sidebar-logo"><img th:src="@{/images/logo.png}" alt="" onerror="this.parentNode.style.background='#F5AFAF'"></div><div class="sidebar-brand">The TrendVelle<span>Admin Panel</span></div></div></div>
+<a href="/admin/dashboard" class="sidebar-link"><i class="ti ti-dashboard"></i> Dashboard</a>
+<a href="/admin/products" class="sidebar-link"><i class="ti ti-shirt"></i> Products</a>
+<a href="/admin/orders" class="sidebar-link active"><i class="ti ti-package"></i> Orders</a>
+<a href="/admin/deliveries" class="sidebar-link"><i class="ti ti-truck"></i> Deliveries</a>
+<a href="/admin/accounts" class="sidebar-link"><i class="ti ti-users"></i> Accounts</a>
+<a href="/admin/chat" class="sidebar-link"><i class="ti ti-message-circle"></i> Chat<span class="sidebar-badge" th:if="${unreadChats > 0}" th:text="${unreadChats}"></span></a>
+<a href="/admin/ratings" class="sidebar-link"><i class="ti ti-star"></i> Ratings</a></div>
+<div class="admin-body">
+<div class="page-title">Orders</div><div class="page-subtitle">Manage all customer orders</div>
+<div th:if="${success}" class="alert alert-success mb-16"><i class="ti ti-check"></i> <span th:text="${success}"></span></div>
+<div style="display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap">
+  <a href="/admin/orders" class="chip" th:classappend="${filterStatus==null?' active':''}">All</a>
+  <a th:each="s : ${statuses}" th:href="@{/admin/orders(status=${s.name()})}" class="chip" th:classappend="${filterStatus==s.name()?' active':''}" th:text="${#strings.replace(s.name(),'_',' ')}">Status</a>
+</div>
+<div class="table-wrapper"><table><thead><tr><th>Order</th><th>Customer</th><th>Method</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+<tbody>
+<tr th:if="${#lists.isEmpty(orders)}"><td colspan="8" style="text-align:center;color:var(--tv-muted);padding:28px">No orders found</td></tr>
+<tr th:each="order : ${orders}">
+  <td style="font-weight:700" th:text="${order.orderNumber}">Order#</td>
+  <td><div style="font-weight:600;font-size:12px" th:text="${order.user.fullName}">User</div><div style="font-size:11px;color:var(--tv-muted)" th:text="${order.user.email}">Email</div></td>
+  <td th:text="${order.deliveryMethod.name()=='MAXIM'?'🛵 Maxim':'🏪 Pickup'}">Method</td>
+  <td style="color:var(--tv-muted)" th:text="${#lists.size(order.items)} + ' items'">0</td>
+  <td style="font-weight:700;color:var(--tv-dark)" th:text="'₱' + ${#numbers.formatDecimal(order.totalAmount,1,'COMMA',2,'POINT')}">₱0</td>
+  <td><span th:class="'status status-' + ${order.status.name().toLowerCase()}" th:text="${#strings.replace(order.status.name(),'_',' ')}">Status</span></td>
+  <td style="font-size:12px;color:var(--tv-muted)" th:text="${#temporals.format(order.createdAt,'MMM d, yyyy')}">Date</td>
+  <td><a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn btn-secondary btn-sm">View</a></td>
+</tr>
+</tbody></table></div></div></div>
+</body></html>

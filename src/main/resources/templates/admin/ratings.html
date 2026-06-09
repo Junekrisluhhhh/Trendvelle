@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Ratings — Admin — The TrendVelle</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div class="page-wrapper">
+<div class="admin-sidebar"><div class="sidebar-head"><div class="sidebar-logo-wrap"><div class="sidebar-logo"><img th:src="@{/images/logo.png}" alt="" onerror="this.parentNode.style.background='#F5AFAF'"></div><div class="sidebar-brand">The TrendVelle<span>Admin Panel</span></div></div></div>
+<a href="/admin/dashboard" class="sidebar-link"><i class="ti ti-dashboard"></i> Dashboard</a>
+<a href="/admin/products" class="sidebar-link"><i class="ti ti-shirt"></i> Products</a>
+<a href="/admin/orders" class="sidebar-link"><i class="ti ti-package"></i> Orders</a>
+<a href="/admin/deliveries" class="sidebar-link"><i class="ti ti-truck"></i> Deliveries</a>
+<a href="/admin/accounts" class="sidebar-link"><i class="ti ti-users"></i> Accounts</a>
+<a href="/admin/chat" class="sidebar-link"><i class="ti ti-message-circle"></i> Chat<span class="sidebar-badge" th:if="${unreadChats > 0}" th:text="${unreadChats}"></span></a>
+<a href="/admin/ratings" class="sidebar-link active"><i class="ti ti-star"></i> Ratings</a></div>
+<div class="admin-body">
+<div class="page-title">Ratings &amp; Reviews</div><div class="page-subtitle">Customer feedback for The TrendVelle</div>
+<div class="card" style="text-align:center;padding:28px;margin-bottom:22px">
+  <div style="font-size:48px;font-weight:700;color:var(--tv-dark)" th:text="${avgRating}">0</div>
+  <div class="stars" style="font-size:24px;margin:8px 0">
+    <span th:each="i : ${#numbers.sequence(1,5)}" th:text="${i <= avgRating ? '★' : '☆'}"></span>
+  </div>
+  <div style="font-size:13px;color:var(--tv-muted)" th:text="${reviewCount} + ' total reviews'">0 reviews</div>
+  <div style="max-width:260px;margin:18px auto 0" th:if="${reviewCount > 0}">
+    <div th:each="n : ${#numbers.sequence(5,1,-1)}"
+         th:with="count=${ratingCounts[n] != null ? ratingCounts[n] : 0}, width=${reviewCount > 0 ? (count * 100 / reviewCount) : 0}"
+         style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="font-size:11px;color:var(--tv-muted);min-width:8px" th:text="${n}">5</span>
+      <span class="stars" style="font-size:11px">★</span>
+      <div style="flex:1;height:7px;background:var(--tv-s2);border-radius:4px;overflow:hidden">
+        <div th:style="${'width:' + width + '%;'}"
+             style="height:100%;background:var(--tv-accent);border-radius:4px;filter:saturate(2)"></div>
+      </div>
+      <span style="font-size:11px;color:var(--tv-muted);min-width:22px" th:text="${count}">0</span>
+    </div>
+  </div>
+</div>
+<div class="empty-state" th:if="${#lists.isEmpty(storeReviews)}"><div class="empty-icon">⭐</div><h3>No reviews yet</h3><p>Customer reviews will appear here</p></div>
+<div style="display:grid;gap:12px" th:if="${!#lists.isEmpty(storeReviews)}">
+  <div class="card card-sm" th:each="review : ${storeReviews}">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar" style="width:34px;height:34px;font-size:11px" th:text="${review.user != null ? #strings.substring(review.user.fullName,0,2).toUpperCase() : '??'}">MG</div>
+        <div><div style="font-weight:600;font-size:13px" th:text="${review.user != null ? review.user.fullName : 'Unknown'}">Name</div><div style="font-size:11px;color:var(--tv-muted)" th:text="${(review.user != null ? review.user.email : 'unknown') + ' · ' + #temporals.format(review.createdAt,'MMM d, yyyy')}">Info</div></div>
+      </div>
+      <div><span class="stars"><span th:each="i : ${#numbers.sequence(1,5)}" th:text="${i <= review.rating ? '★' : '☆'}"></span></span> <span style="font-size:12px;color:var(--tv-muted)" th:text="${review.rating + '/5'}"></span></div>
+    </div>
+    <p style="font-size:13px;color:var(--tv-muted)" th:text="${review.comment}">Comment</p>
+  </div>
+</div>
+</div></div>
+</body></html>
