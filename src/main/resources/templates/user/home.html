@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
   <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script th:src="@{/js/responsive.js}" defer></script>
 </head>
 <body>
 <!-- TOPBAR -->
@@ -22,6 +23,11 @@
     <a href="/chat"><i class="ti ti-message-circle"></i> Chat</a>
     <a href="/reviews/store">Rate Store</a>
   </nav>
+  <button class="mobile-menu-btn" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
   <a href="/cart" class="cart-btn" style="margin-left:8px">
     <i class="ti ti-shopping-cart" style="font-size:16px"></i>
     <span class="cart-dot" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}"></span>

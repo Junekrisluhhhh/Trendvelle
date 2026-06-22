@@ -28,7 +28,9 @@ public class OrderService {
         cartService.clearCart(user);
         return saved;
     }
-    public List<Order> getUserOrders(User user){ return orderRepository.findByUserOrderByCreatedAtDesc(user); }
+    public List<Order> getUserOrders(User user){
+         return orderRepository.findByUserOrderByCreatedAtDesc(user);
+         }
     public Optional<Order> findById(Long id){ return orderRepository.findById(id); }
     public Optional<Order> findByOrderNumber(String num){ return orderRepository.findByOrderNumber(num); }
     public List<Order> getAllOrders(){ return orderRepository.findAllByOrderByCreatedAtDesc(); }

@@ -6,6 +6,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
   <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script th:src="@{/js/responsive.js}" defer></script>
+  <style>
+    @media (max-width: 768px) {
+      .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+      }
+    }
+  </style>
 </head>
 <body>
 <nav class="topbar">
@@ -14,6 +24,11 @@
     <div class="brand-text">The TrendVelle<span>Fashion · Style</span></div>
   </a>
   <nav class="topnav"><a href="/home">Home</a><a href="/shop">Shop</a><a href="/orders">My Orders</a></nav>
+  <button class="mobile-menu-btn" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
   <a href="/cart" class="cart-btn" style="margin-left:8px">
     <i class="ti ti-shopping-cart" style="font-size:16px"></i>
     <span class="cart-dot" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}"></span>
@@ -23,11 +38,27 @@
   <div class="page-title">Checkout</div>
   <div class="page-subtitle">Complete your order</div>
 
+  <!-- Checkout Progress Steps -->
+  <div class="checkout-steps">
+    <div class="checkout-step active">
+      <div class="checkout-step-circle">1</div>
+      <div class="checkout-step-label">Delivery</div>
+    </div>
+    <div class="checkout-step active">
+      <div class="checkout-step-circle">2</div>
+      <div class="checkout-step-label">Review</div>
+    </div>
+    <div class="checkout-step">
+      <div class="checkout-step-circle">3</div>
+      <div class="checkout-step-label">Confirm</div>
+    </div>
+  </div>
+
   <div th:if="${error}" class="alert alert-error"><i class="ti ti-alert-circle"></i> <span th:text="${error}"></span></div>
 
   <form th:action="@{/orders/place}" method="post" id="checkoutForm">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-    <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start">
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start" class="checkout-grid">
       <div>
         <!-- Delivery method -->
         <div class="card" style="margin-bottom:18px">

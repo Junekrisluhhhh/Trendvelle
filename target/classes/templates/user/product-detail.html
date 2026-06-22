@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
   <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script th:src="@{/js/responsive.js}" defer></script>
   <style>
     input[type=number].qty-input::-webkit-outer-spin-button,
     input[type=number].qty-input::-webkit-inner-spin-button {
@@ -17,6 +18,24 @@
     input[type=number].qty-input {
       -moz-appearance: textfield;
       appearance: textfield;
+    }
+    @media (max-width: 768px) {
+      .product-detail-grid {
+        display: grid;
+        grid-template-columns: 1fr !important;
+        gap: 28px !important;
+      }
+      .product-image-container {
+        height: 280px !important;
+      }
+    }
+    @media (max-width: 480px) {
+      .product-detail-grid {
+        gap: 20px !important;
+      }
+      .product-image-container {
+        height: 200px !important;
+      }
     }
   </style>
 </head>
@@ -30,6 +49,11 @@
     <a href="/home">Home</a><a href="/shop" class="active">Shop</a>
     <a href="/orders">My Orders</a><a href="/chat"><i class="ti ti-message-circle"></i> Chat</a>
   </nav>
+  <button class="mobile-menu-btn" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
   <a href="/cart" class="cart-btn" style="margin-left:8px">
     <i class="ti ti-shopping-cart" style="font-size:16px"></i>
     <span class="cart-dot" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}"></span>
@@ -43,10 +67,10 @@
 
   <div th:if="${success}" class="alert alert-success mb-16"><i class="ti ti-check"></i> <span th:text="${success}"></span></div>
 
-  <div style="display:grid;grid-template-columns:340px 1fr;gap:44px;align-items:start">
+  <div style="display:grid;grid-template-columns:340px 1fr;gap:44px;align-items:start" class="product-detail-grid">
     <!-- Image -->
     <div>
-      <div style="height:340px;background:var(--tv-s1);border-radius:var(--r);overflow:hidden;border:1px solid var(--tv-border);display:flex;align-items:center;justify-content:center">
+      <div class="product-image-container" style="height:340px;background:var(--tv-s1);border-radius:var(--r);overflow:hidden;border:1px solid var(--tv-border);display:flex;align-items:center;justify-content:center">
       <img th:if="${product.hasImage()}" th:src="${product.imagePath}" alt="" style="width:100%;height:100%;object-fit:cover">
       <span th:unless="${product.hasImage()}" th:text="${product.icon != null ? product.icon : '👗'}" style="font-size:110px"></span>
     </div>
